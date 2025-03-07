@@ -1,10 +1,14 @@
 var builder = WebApplication.CreateBuilder(args);
+
+// Добавляем сервисы для контроллеров
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
-DataBase.DataBase.CreateTable();
+// Включаем маршрутизацию
+app.UseRouting();
 
-
-
-app.MapGet("/", () => "Hello World!");
+// Верхнеуровневая маршрутизация
+app.MapControllers();
 
 app.Run();
