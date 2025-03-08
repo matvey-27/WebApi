@@ -88,6 +88,34 @@ class Data
         return false;
     }
 
+    public static async Task<bool> UserExists(string login)
+    {
+        using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
+        {
+            await connection.OpenAsync(); 
+            SqliteCommand command = new SqliteCommand();
+            command.Connection = connection;
+            command.CommandText = @"
+                SELECT EXISTS (
+                    SELECT 1 FROM Users
+                    WHERE login = $login
+                ) AS userExists;
+            ";
+
+            command.Parameters.AddWithValue("$login", login);
+
+            using (SqliteDataReader reader = await command.ExecuteReaderAsync()) 
+            {
+                if (await reader.ReadAsync()) 
+                {
+                    return reader.GetInt32(0) == 1; 
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static string GenerateToken()
     {
         byte[] tokenBytes = new byte[32]; 
@@ -252,6 +280,7 @@ class Data
     }
 
     public static int FindChat(int saquraIdOne, int saquraIdTwo)
+
     {
         using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
         {
@@ -276,6 +305,7 @@ class Data
             return res; // Если count > 0, чат существует
         }
     }
+    
     public static void AddMessage(int chatId, int saquraId, string text, string companionStatus)
     {
         using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
@@ -358,7 +388,7 @@ class Data
             command.Parameters.AddWithValue("$time", defaultTime);
 
             command.ExecuteNonQuery();
-            Console.WriteLine("Пользователь успешно добавлен.");
+            // Console.WriteLine("Пользователь успешно добавлен.");
         }
     }
 }
