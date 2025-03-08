@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace WebAPIApp.Controllers
 {
@@ -21,12 +20,12 @@ namespace WebAPIApp.Controllers
 
             if (userExists)
             {
-                return Ok(new { Message = "good", Token = DataBase.Data.GetTokenByLogin(login) });
+                return Ok(new { Message = "found user", Token = DataBase.Data.GetTokenByLogin(login) });
             }
             else
             {
                 // Пользователь не найден
-                return Unauthorized(new { Message = "bad" });
+                return Unauthorized(new { Message = "not found user" });
             }
         }
     }

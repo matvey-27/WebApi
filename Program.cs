@@ -1,3 +1,5 @@
+DataBase.Data.CreateTable();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Добавляем сервисы для контроллеров
