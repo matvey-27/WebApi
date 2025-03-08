@@ -7,7 +7,7 @@ namespace WebAPIApp.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        [HttpGet("authenticate")]
+        [HttpPost("authenticate")]
         public async Task<ActionResult<object>> Authenticate(string login, string password)
         {
             // Проверка входных данных
@@ -21,12 +21,12 @@ namespace WebAPIApp.Controllers
 
             if (userExists)
             {
-                return Ok(new { Message = "верный логин и пароль" });
+                return Ok(new { Message = "good", Token = DataBase.Data.GetTokenByLogin(login) });
             }
             else
             {
                 // Пользователь не найден
-                return Unauthorized(new { Message = "Неверный логин или пароль" });
+                return Unauthorized(new { Message = "bad" });
             }
         }
     }

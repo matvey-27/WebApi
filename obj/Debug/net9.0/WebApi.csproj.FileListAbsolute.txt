@@ -53,3 +53,8 @@
 /home/matvey/Документы/WebApi/obj/Debug/net9.0/WebApi.pdb
 /home/matvey/Документы/WebApi/obj/Debug/net9.0/WebApi.genruntimeconfig.cache
 /home/matvey/Документы/WebApi/obj/Debug/net9.0/ref/WebApi.dll
+/home/matvey/Документы/WebApi/bin/Debug/net9.0/Microsoft.IdentityModel.Abstractions.dll
+/home/matvey/Документы/WebApi/bin/Debug/net9.0/Microsoft.IdentityModel.JsonWebTokens.dll
+/home/matvey/Документы/WebApi/bin/Debug/net9.0/Microsoft.IdentityModel.Logging.dll
+/home/matvey/Документы/WebApi/bin/Debug/net9.0/Microsoft.IdentityModel.Tokens.dll
+/home/matvey/Документы/WebApi/bin/Debug/net9.0/System.IdentityModel.Tokens.Jwt.dll
