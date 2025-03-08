@@ -391,4 +391,53 @@ class Data
             // Console.WriteLine("Пользователь успешно добавлен.");
         }
     }
+
+    public static List<Chat> GetChatsByToken(string token)
+    {
+        using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
+        {
+            connection.Open();
+
+            // Получаем saqura_id по токену
+            SqliteCommand getUserIdCommand = new SqliteCommand();
+            getUserIdCommand.Connection = connection;
+            getUserIdCommand.CommandText = @"
+                SELECT saqura_id FROM Token
+                WHERE token = $token;
+            ";
+            getUserIdCommand.Parameters.AddWithValue("$token", token);
+
+            var userId = getUserIdCommand.ExecuteScalar();
+            if (userId == null)
+            {
+                throw new Exception("Токен не найден.");
+            }
+
+            int saquraId = Convert.ToInt32(userId);
+
+            // Извлекаем чаты, где пользователь является участником
+            SqliteCommand getChatsCommand = new SqliteCommand();
+            getChatsCommand.Connection = connection;
+            getChatsCommand.CommandText = @"
+                SELECT * FROM Chats
+                WHERE saqura_id_one = $saquraId OR saqura_id_two = $saquraId;
+            ";
+            getChatsCommand.Parameters.AddWithValue("$saquraId", saquraId);
+
+            var reader = getChatsCommand.ExecuteReader();
+            var chats = new List<Chat>();
+
+            while (reader.Read())
+            {
+                chats.Add(new Chat
+                {
+                    ChatId = reader.GetInt32(0),
+                    SaquraIdOne = reader.GetInt32(1),
+                    SaquraIdTwo = reader.GetInt32(2)
+                });
+            }
+
+            return chats;
+        }
+    }
 }
