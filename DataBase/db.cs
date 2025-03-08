@@ -41,9 +41,15 @@ class Data
                 time	TEXT
             );
 
+            CREATE TABLE IF NOT EXISTS Blocked (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                saqura_id INTEGER,
+                blocked_saqura_id INTEGER
+            );
+
             CREATE TABLE IF NOT EXISTS Token (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                saqura_id TEXT,
+                saqura_id INTEGER,
                 token TEXT,
                 UNIQUE(saqura_id, token) 
             );
@@ -139,27 +145,22 @@ class Data
         }
     }
 
-    public static string? GetIdByToken(string token){
+    public static string? GetIdByToken(string token)
+    {
         using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
         {
             connection.Open();
-            SqliteCommand findUserCommand = new SqliteCommand();
-            findUserCommand.Connection = connection;
-            findUserCommand.CommandText = @"
+
+            SqliteCommand command = new SqliteCommand();
+            command.Connection = connection;
+            command.CommandText = @"
                 SELECT saqura_id FROM Token
                 WHERE token = $token;
             ";
-            findUserCommand.Parameters.AddWithValue("$token", token);
+            command.Parameters.AddWithValue("$token", token);
 
-            var userId = findUserCommand.ExecuteScalar();
-
-            if (userId == null)
-            {
-                throw new Exception("Пользователь с таким логином не найден.");
-            }
-            else{
-                return userId.ToString();
-            }
+            var userId = command.ExecuteScalar();
+            return userId?.ToString(); // Возвращаем null, если токен не найден
         }
     }
 
@@ -185,6 +186,32 @@ class Data
             command.Parameters.AddWithValue("$saquraIdTwo", saquraIdTwo);
 
             int count = Convert.ToInt32(command.ExecuteScalar());
+            return count > 0; // Если count > 0, чат существует
+        }
+    }
+
+    public static async Task<bool> ChatExistsAsync(int saquraIdOne, int saquraIdTwo)
+    {
+        using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
+        {
+            await connection.OpenAsync();
+
+            // Убедимся, что saquraIdOne < saquraIdTwo
+            if (saquraIdOne > saquraIdTwo)
+            {
+                (saquraIdOne, saquraIdTwo) = (saquraIdTwo, saquraIdOne);
+            }
+
+            SqliteCommand command = new SqliteCommand();
+            command.Connection = connection;
+            command.CommandText = @"
+                SELECT COUNT(*) FROM Chats
+                WHERE saqura_id_one = $saquraIdOne AND saqura_id_two = $saquraIdTwo;
+            ";
+            command.Parameters.AddWithValue("$saquraIdOne", saquraIdOne);
+            command.Parameters.AddWithValue("$saquraIdTwo", saquraIdTwo);
+
+            int count = Convert.ToInt32(await command.ExecuteScalarAsync());
             return count > 0; // Если count > 0, чат существует
         }
     }
@@ -224,6 +251,31 @@ class Data
         
     }
 
+    public static int FindChat(int saquraIdOne, int saquraIdTwo)
+    {
+        using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
+        {
+            connection.Open();
+
+            // Убедимся, что saquraIdOne < saquraIdTwo
+            if (saquraIdOne > saquraIdTwo)
+            {
+                (saquraIdOne, saquraIdTwo) = (saquraIdTwo, saquraIdOne);
+            }
+
+            SqliteCommand command = new SqliteCommand();
+            command.Connection = connection;
+            command.CommandText = @"
+                SELECT chat_id FROM Chats
+                WHERE saqura_id_one = $saquraIdOne AND saqura_id_two = $saquraIdTwo;
+            ";
+            command.Parameters.AddWithValue("$saquraIdOne", saquraIdOne);
+            command.Parameters.AddWithValue("$saquraIdTwo", saquraIdTwo);
+
+            int res = Convert.ToInt32(command.ExecuteScalar());
+            return res; // Если count > 0, чат существует
+        }
+    }
     public static void AddMessage(int chatId, int saquraId, string text, string companionStatus)
     {
         using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
@@ -256,6 +308,57 @@ class Data
 
             addMessageCommand.ExecuteNonQuery();
             // Console.WriteLine("Сообщение успешно добавлено.");
+        }
+    }
+
+    public static bool TokenExists(string token)
+    {
+        using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
+        {
+            connection.Open();
+
+            SqliteCommand command = new SqliteCommand();
+            command.Connection = connection;
+            command.CommandText = @"
+                SELECT COUNT(*) FROM Token
+                WHERE token = $token;
+            ";
+            command.Parameters.AddWithValue("$token", token);
+
+            int count = Convert.ToInt32(command.ExecuteScalar());
+            return count > 0; // Если count > 0, токен существует
+        }
+    }
+
+    public static void AddUser(string login, string password)
+    {
+        using (var connection = new SqliteConnection("Data Source=DataBase/db.db;Mode=ReadWriteCreate"))
+        {
+            connection.Open();
+
+            SqliteCommand command = new SqliteCommand();
+            command.Connection = connection;
+            command.CommandText = @"
+                INSERT INTO Users (name, login, password, discription, status, time)
+                VALUES ($name, $login, $password, $discription, $status, $time);
+            ";
+
+            // Значения по умолчанию
+            string defaultName = "New User";
+            string defaultDescription = "No description";
+            string defaultStatus = "offline";
+            string defaultTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"); // Текущее время
+
+            // Параметры
+            command.Parameters.AddWithValue("$name", defaultName);
+            command.Parameters.AddWithValue("$login", login);
+            command.Parameters.AddWithValue("$password", password);
+            command.Parameters.AddWithValue("$discription", defaultDescription);
+            command.Parameters.AddWithValue("$status", defaultStatus);
+            command.Parameters.AddWithValue("$time", defaultTime);
+
+            command.ExecuteNonQuery();
+            Console.WriteLine("Пользователь успешно добавлен.");
         }
     }
 }
